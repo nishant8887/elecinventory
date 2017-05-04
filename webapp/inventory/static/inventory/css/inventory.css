@@ -1,0 +1,11 @@
+label.control-label {
+    text-transform: capitalize;
+}
+
+.capitalize {
+    text-transform: capitalize;
+}
+
+.main-container {
+    margin: 10px;
+}

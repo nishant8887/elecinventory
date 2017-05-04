@@ -1,0 +1,26 @@
+{% extends "main/base.html" %}
+{% load staticfiles %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{% static 'main/css/bootstrap.min.css' %}">
+<link rel="stylesheet" href="{% static 'inventory/css/inventory.css' %}">
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'main/js/jquery-3.2.1.min.js' %}"></script>
+<script src="{% static 'main/js/bootstrap.min.js' %}"></script>
+{% endblock %}
+
+{% block title %}Component{% endblock %}
+
+{% block content %}
+<body>
+    <div class="container-fluid main-container">
+        <ol class="breadcrumb">
+            <li class="active capitalize">Components</li>
+        </ol>
+        {% for component in components %}
+            <a href="/components/add/{{component.id}}" class="btn btn-default btn-lg btn-block capitalize">{{ component.name }}</a>
+        {% endfor %}
+</body>
+{% endblock %}
