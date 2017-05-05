@@ -1,0 +1,43 @@
+{% extends "main/base.html" %}
+{% load staticfiles %}
+{% load inventory_filters %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{% static 'main/css/bootstrap.min.css' %}">
+<link rel="stylesheet" href="{% static 'inventory/css/inventory.css' %}">
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'main/js/jquery-3.2.1.min.js' %}"></script>
+<script src="{% static 'main/js/bootstrap.min.js' %}"></script>
+{% endblock %}
+
+{% block title %}Component{% endblock %}
+
+{% block content %}
+<body>
+    <div class="container-fluid main-container">
+        <ol class="breadcrumb">
+            <li><a href="/components/">Components</a></li>
+            <li class="active capitalize">{{name}}</li>
+        </ol>
+        <div class="panel panel-default">
+            <div class="panel-heading"><b>Properties</b></div>
+            <table class="table">
+                {% csrf_token %}
+                {% for property in properties %}
+                    <tr>
+                        <td class="capitalize">{{property.name}}</td>
+                        <td>
+                            {{data|get_value_from_dict_for_show:property.name}}
+                            {% if property.unit %}<span>{{property.unit}}</span>{% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                <tr><td>Box</td><td>{{data|get_value_from_dict:'box'}}</td></tr>
+                <tr><td><b>Quantity</b></td><td><b>{{data|get_value_from_dict:'quantity'}}</b></td></tr>
+            </table>
+        </div>
+        <a href="edit" class="btn btn-primary">Edit</a>
+</body>
+{% endblock %}

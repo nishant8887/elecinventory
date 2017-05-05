@@ -18,8 +18,14 @@
 <body>
     <div class="container-fluid main-container">
         <ol class="breadcrumb">
-            <li><a href="/components/add/">Components</a></li>
+            <li><a href="/components/">Components</a></li>
+            {% if not edit_type %}
+            <li><a href="/components/add/">Add</a></li>
             <li class="active capitalize">{{name}}</li>
+            {% else %}
+            <li><a href=".." class="capitalize">{{name}}</a></li>
+            <li class="active capitalize">Edit</li>
+            {% endif %}
         </ol>
         {% for error in errors %}
             <div class="alert alert-danger" role="alert">{{error}}</div>
@@ -36,15 +42,15 @@
                 </div>
             {% endfor %}
             <div class="form-group">
-                <label for="id-quantity" class="col-sm-2 control-label">Quantity</label>
-                <div class="input-group col-sm-8">
-                    <input type="text" class="form-control" id="id-quantity" placeholder="quantity" name="quantity" value="{{data|get_value_from_dict:'quantity'}}">
-                </div>
-            </div>
-            <div class="form-group">
                 <label for="id-box" class="col-sm-2 control-label">Box</label>
                 <div class="input-group col-sm-8">
                     <input type="text" class="form-control" id="id-box" placeholder="box" name="box" value="{{data|get_value_from_dict:'box'}}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="id-quantity" class="col-sm-2 control-label">Quantity</label>
+                <div class="input-group col-sm-8">
+                    <input type="text" class="form-control" id="id-quantity" placeholder="quantity" name="quantity" value="{{data|get_value_from_dict:'quantity'}}">
                 </div>
             </div>
             <button class="btn btn-primary" type="submit">Save</button>

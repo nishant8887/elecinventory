@@ -32,7 +32,10 @@ def process_component(component, parameters):
         data['quantity'] = ''
     else:
         try:
-            data['quantity'] = float(quantity)
+            quantity = int(quantity)
+            if quantity < 0:
+                errors.append('Non-negative value expected for quantity')
+            data['quantity'] = quantity
         except:
             data['quantity'] = quantity
             errors.append('Non-numeric value for quantity')
@@ -66,10 +69,32 @@ def add_component(request, component_type_id):
             del data['box']
             c.component_data = json.dumps(data)
             c.save()
-            return HttpResponseRedirect('/')
-    return render(request, 'inventory/component.html', {'name': component_type.name, 'properties': component_type.properties.all, 'errors': errors, 'data': data})
+            return HttpResponseRedirect('/components/')
+    return render(request, 'inventory/component.html', {'edit_type': False, 'name': component_type.name, 'properties': component_type.properties.all, 'errors': errors, 'data': data})
 
 def edit_component(request, component_id):
+    component = Component.objects.get(id=component_id)
+    component_type = component.component_type
+    errors = []
+
+    if request.method == "POST":
+        data, errors = process_component(component_type, request.POST)
+        if len(errors) == 0:
+            component.quantity = data['quantity']
+            component.box_id = data['box']
+            del data['quantity']
+            del data['box']
+            component.component_data = json.dumps(data)
+            component.save()
+            return HttpResponseRedirect('/components/%s/' % component_id)
+    else:
+        data = json.loads(component.component_data)
+        data['quantity'] = component.quantity
+        data['box'] = component.box_id
+
+    return render(request, 'inventory/component.html', {'edit_type': True, 'name': component_type.name, 'properties': component_type.properties.all, 'errors': errors, 'data': data})
+
+def view_component(request, component_id):
     component = Component.objects.get(id=component_id)
     component_type = component.component_type
     errors = []
@@ -89,4 +114,4 @@ def edit_component(request, component_id):
         data['quantity'] = component.quantity
         data['box'] = component.box_id
 
-    return render(request, 'inventory/component.html', {'name': component_type.name, 'properties': component_type.properties.all, 'errors': errors, 'data': data})
+    return render(request, 'inventory/component_view.html', {'name': component_type.name, 'properties': component_type.properties.all, 'data': data})
