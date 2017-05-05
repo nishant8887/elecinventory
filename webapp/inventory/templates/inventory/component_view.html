@@ -10,6 +10,36 @@
 {% block js %}
 <script src="{% static 'main/js/jquery-3.2.1.min.js' %}"></script>
 <script src="{% static 'main/js/bootstrap.min.js' %}"></script>
+<script type="text/javascript">
+    var csrf_token = "{{csrf_token}}";
+
+    var send_to_server = function(l) {
+        var data = {
+            csrfmiddlewaretoken: csrf_token,
+            diff: l, 
+        }
+        $.post("/components/{{id}}/update/", data).done(function(e) {
+            location.reload();
+        }).fail(function(e) {
+        });
+    };
+
+    $(document).ready(function() {
+        $("#d-plus").click(function(e) {
+            e.preventDefault();
+            var v = $("#d-quantity").val();
+            var l = parseInt(v);
+            send_to_server(l);
+        });
+        $("#d-minus").click(function(e) {
+            e.preventDefault();
+            var v = $("#d-quantity").val();
+            var l = parseInt(v);
+            l = l * (-1);
+            send_to_server(l);
+        });
+    });
+</script>
 {% endblock %}
 
 {% block title %}Component{% endblock %}
@@ -24,7 +54,6 @@
         <div class="panel panel-default">
             <div class="panel-heading"><b>Properties</b></div>
             <table class="table">
-                {% csrf_token %}
                 {% for property in properties %}
                     <tr>
                         <td class="capitalize">{{property.name}}</td>
@@ -35,9 +64,24 @@
                     </tr>
                 {% endfor %}
                 <tr><td>Box</td><td>{{data|get_value_from_dict:'box'}}</td></tr>
-                <tr><td><b>Quantity</b></td><td><b>{{data|get_value_from_dict:'quantity'}}</b></td></tr>
+                <tr>
+                    <td><b>Quantity</b></td>
+                    <td>
+                        <b>{{data|get_value_from_dict:'quantity'}}</b>
+                    </td>
+                </tr>
             </table>
         </div>
         <a href="edit" class="btn btn-primary">Edit</a>
+        <form class="form-inline pull-right">
+            <select id="d-quantity" class="form-control">
+                <option>1</option>
+                <option>5</option>
+                <option>10</option>
+                <option>100</option>
+            </select>
+            <button id="d-plus" class="btn btn-primary glyphicon glyphicon-plus"></button>
+            <button id="d-minus" class="btn btn-primary glyphicon glyphicon-minus"></button>
+        </form>
 </body>
 {% endblock %}

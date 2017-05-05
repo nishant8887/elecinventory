@@ -1,0 +1,60 @@
+{% extends "main/base.html" %}
+{% load staticfiles %}
+{% load inventory_filters %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{% static 'main/css/bootstrap.min.css' %}">
+<link rel="stylesheet" href="{% static 'inventory/css/inventory.css' %}">
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'main/js/jquery-3.2.1.min.js' %}"></script>
+<script src="{% static 'main/js/bootstrap.min.js' %}"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#id-search-text').focus();
+        var v = $("#id-search-text").val();
+        $("#id-search-text").val(v);
+
+        $("#id-search").click(function(e) {
+            e.preventDefault();
+            var v = $("#id-search-text").val();
+            window.location.href = "/components/?q=" + v;
+        });
+        $('#id-search-text').keydown(function(e) {
+            if (e.keyCode == 13) {
+                var v = $("#id-search-text").val();
+                window.location.href = "/components/?q=" + v;
+                return false;
+            }
+        });
+    });
+</script>
+{% endblock %}
+
+{% block title %}Component{% endblock %}
+
+{% block content %}
+<body>
+    <div class="container-fluid main-container">
+        <ol class="breadcrumb">
+            <li class="active capitalize">Components</li>
+        </ol>
+        <div class="input-group">
+            <span class="input-group-addon">Search</span>
+            <input id="id-search-text" type="text" class="form-control" value="{{query}}">
+            <div class="input-group-btn">
+                <button id="id-search" class="btn btn-default"><span class="glyphicon glyphicon-search"></span></button>
+                <a href="/components/add/" class="btn btn-default"><span class="glyphicon glyphicon-plus"></span></a>
+            </div>
+        </div>
+        {% if components %}
+            <table class="table">
+                <tr><th>Id</th><th>Type</th><th>Quantity</th><th>Box</th><th>Properties</th></tr>
+                {% for component in components %}
+                    <tr><td><a href="/components/{{component.id}}/">{{component.id}}</a></td><td>{{component.component_type.name}}</td><td>{{component.quantity}}</td><td>{{component.box_id}}</td><td>{{component|get_searched_properties:data}}</td></tr>
+                {% endfor %}
+            </table>
+        {% endif %}
+</body>
+{% endblock %}

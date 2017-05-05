@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.contrib.postgres.fields import HStoreField
 
 # Create your models here.
 class Property(models.Model):
@@ -24,7 +25,7 @@ class ComponentType(models.Model):
 
 class Component(models.Model):
     component_type = models.ForeignKey(ComponentType)
-    component_data = models.TextField(default='{}')
+    component_data = HStoreField()
     quantity = models.IntegerField(default=0)
     box_id = models.CharField(max_length=100)
 
