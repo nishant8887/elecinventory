@@ -9,3 +9,53 @@ label.control-label {
 .main-container {
     margin: 10px;
 }
+
+.brand-img {
+	width: 50px;
+	height: auto;
+	margin-top: 5px;
+}
+
+.navbar-ot-user {
+	margin-right: 20px;
+}
+
+.loader {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 9999;
+	opacity: 0.75;
+	background: #878787;
+}
+
+.loader-img {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	width: 275px;
+	height: 200px;
+	margin-top: -100px;
+	margin-left: -137px;
+	background-color: #878787;
+}
+
+.search-input {
+	font-size: 11px;
+	font-weight: normal;
+}
+
+.component-search-view {
+	margin-top: 10px;
+}
+
+.mode-bar {
+	text-align: right;
+}
+
+.quantity-bar {
+	text-align: right;
+}
+

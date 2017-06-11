@@ -4,57 +4,188 @@
 
 {% block stylesheets %}
 <link rel="stylesheet" href="{% static 'main/css/bootstrap.min.css' %}">
+<link rel="stylesheet" href="{% static 'main/css/jquery-ui.min.css' %}">
 <link rel="stylesheet" href="{% static 'inventory/css/inventory.css' %}">
 {% endblock %}
 
 {% block js %}
 <script src="{% static 'main/js/jquery-3.2.1.min.js' %}"></script>
 <script src="{% static 'main/js/bootstrap.min.js' %}"></script>
-<script type="text/javascript">
-    $(document).ready(function() {
-        $('#id-search-text').focus();
-        var v = $("#id-search-text").val();
-        $("#id-search-text").val(v);
+<script src="{% static 'main/js/jquery-ui.min.js' %}"></script>
+<script src="{% static 'main/js/knockout-3.4.2.js' %}"></script>
+<script>
+    var CSRF_TOKEN = "{{ csrf_token }}";
+    var COMPONENT_TYPE_ID = {{ component_type.id }};
 
-        $("#id-search").click(function(e) {
-            e.preventDefault();
-            var v = $("#id-search-text").val();
-            window.location.href = "/components/?q=" + v;
-        });
-        $('#id-search-text').keydown(function(e) {
-            if (e.keyCode == 13) {
-                var v = $("#id-search-text").val();
-                window.location.href = "/components/?q=" + v;
-                return false;
+    function PropertySet() {
+        this.properties = [];
+        {% for property in properties %}
+            this.properties.push(["property_{{forloop.counter}}", "{{property.name}}" ]);
+            this.property_{{forloop.counter}} = ko.observable("");
+        {% endfor %}
+
+        this.quantity = ko.observable("");
+        this.box = ko.observable("");
+
+        this.toJS = function() {
+            var component = ko.toJS(this);
+            var final_component = {};
+            for (var index in this.properties) {
+                var val = this.properties[index];
+                final_component[val[1]] = component[val[0]];
             }
-        });
-    });
+            final_component["quantity"] = this.quantity();
+            final_component["box"] = this.box();
+            return final_component;
+        }
+
+        return this;
+    }
 </script>
+<script src="{% static 'inventory/js/search.js' %}"></script>
 {% endblock %}
 
 {% block title %}Component{% endblock %}
 
 {% block content %}
 <body>
+    <div class="loader" data-bind="visible: loader">
+        <img src="{% static 'inventory/images/loader.gif' %}" class="loader-img" />
+    </div>
+    <nav class="navbar navbar-default navbar-static-top navbar-ot-color">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/services/">
+                    <img class="brand-img" src="{% static 'inventory/images/logo.png' %}">
+                </a>
+            </div>
+            <a href="/logout/" class="navbar-text navbar-right navbar-ot-user">Logout</a>
+            <p class="navbar-text navbar-right navbar-ot-user">{{ name }}</p>
+        </div>
+    </nav>
     <div class="container-fluid main-container">
         <ol class="breadcrumb">
-            <li class="active capitalize">Components</li>
+            <li><a href="/components/">Components</a></li>
+            <li class="active capitalize">{{ component_type.name }}</li>
         </ol>
-        <div class="input-group">
-            <span class="input-group-addon">Search</span>
-            <input id="id-search-text" type="text" class="form-control" value="{{query}}">
-            <div class="input-group-btn">
-                <button id="id-search" class="btn btn-default"><span class="glyphicon glyphicon-search"></span></button>
-                <a href="/components/add/" class="btn btn-default"><span class="glyphicon glyphicon-plus"></span></a>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <form>
+                            {% for property in properties %}
+                            <div class="form-group">
+                                <label class="control-label search-input capitalize">{{ property.name }} {% if property.unit %}({{ property.unit }}) {% endif %}</label>
+                                <input name="{{property.name}}" data-bind="value: searchPropertySet.property_{{forloop.counter}}, click: loadPropertyAutoComplete.bind($data, '{{property}}')" class="form-control input-sm">
+                            </div>
+                            {% endfor %}
+                            <div class="form-group">
+                                <label class="control-label search-input capitalize">Box</label>
+                                <input name="box" data-bind="value: searchPropertySet.box, click: loadPropertyAutoComplete.bind($data, 'box')" class="form-control input-sm">
+                            </div>
+                            <div class="form-group">
+                                <button class="btn btn-default btn-primary" data-bind="click: searchComponent">Search</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <div data-bind="visible: searchedItems().length > 0">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="btn-group">
+                                <button data-bind="click: previous, disable: previousDisable" class="btn btn-default btn-sm glyphicon glyphicon-chevron-left"></button>
+                                <button data-bind="click: next, disable: nextDisable" class="btn btn-default btn-sm glyphicon glyphicon-chevron-right"></button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mode-bar">
+                            <span>Mode </span>
+                            <select data-bind="options: operationModes, optionsText: 'text', optionsValue: 'sign', value: modeSign"></select>
+                        </div>
+                    </div>
+                    <div class="component-search-view" data-bind="foreach: searchedItems">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <span data-bind="text: box" class="label label-success"></span>
+                                        <button class="btn btn-default btn-xs glyphicon glyphicon-tag" data-bind="click: $parent.updateBox.bind($data)"></button>
+                                    </div>
+                                    <div class="col-md-6 quantity-bar">
+                                        <span data-bind="text: 'Quantity: ' + quantity" class="label label-primary"></span>
+                                        <div class="btn-group">
+                                            <button class="btn btn-default btn-xs" data-bind="text: $parent.modeSign() + '1', click: $parent.updateQuantity.bind($data, 1)"></button>
+                                            <button class="btn btn-default btn-xs" data-bind="text: $parent.modeSign() + '10', click: $parent.updateQuantity.bind($data, 10)"></button>
+                                            <button class="btn btn-default btn-xs" data-bind="text: $parent.modeSign() + '100', click: $parent.updateQuantity.bind($data, 100)"></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <table class="table table-condensed">
+                                <tbody data-bind="html: text">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="btn btn-default btn-lg btn-block capitalize" data-bind="visible: searchedItems().length == 0, click: addComponent"><span class="glyphicon glyphicon-plus"></span> Add {{ component_type.name }}</div>
+            </div>
+        <div>
+    </div>
+    <div id="addComponentModal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title capitalize">Add {{ component_type.name }} </h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        {% for property in properties %}
+                        <div class="form-group">
+                            <label class="control-label search-input capitalize">{{ property.name }} {% if property.unit %}({{ property.unit }}) {% endif %}</label>
+                            <input name="{{property.name}}" data-bind="value: dialogPropertySet.property_{{forloop.counter}}, enable: searchPropertySet.property_{{forloop.counter}}().trim() == ''" class="form-control input-sm">
+                        </div>
+                        {% endfor %}
+                        <div class="form-group">
+                            <label class="control-label search-input capitalize">Box</label>
+                            <input name="box" data-bind="value: dialogPropertySet.box" class="form-control input-sm">
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label search-input capitalize">Quantity</label>
+                            <input name="quantity" data-bind="value: dialogPropertySet.quantity" class="form-control input-sm">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button data-dismiss="modal" data-bind="click: saveComponent" type="button" class="btn btn-primary">Save</button>
+                </div>
             </div>
         </div>
-        {% if components %}
-            <table class="table">
-                <tr><th>Id</th><th>Type</th><th>Quantity</th><th>Box</th><th>Properties</th></tr>
-                {% for component in components %}
-                    <tr><td><a href="/components/{{component.id}}/">{{component.id}}</a></td><td>{{component.component_type.name}}</td><td>{{component.quantity}}</td><td>{{component.box_id}}</td><td>{{component|get_searched_properties:data}}</td></tr>
-                {% endfor %}
-            </table>
-        {% endif %}
+    </div>
+    <div id="editBoxModal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title capitalize">Change Box</h4>
+                </div>
+                <div class="modal-body">
+                    <form class="form-horizontal">
+                        <div class="form-group">
+                            <label for="editInputBox" class="col-sm-2 control-label">Box</label>
+                            <div class="col-sm-10">
+                                <input type="text" data-bind="value: boxValue" class="form-control" id="editInputBox" placeholder="Box">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button data-dismiss="modal" data-bind="click: saveBox" type="button" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+        </div>
+    </div-->
 </body>
 {% endblock %}
