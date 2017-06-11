@@ -65,8 +65,30 @@ def search_items(request, component_type_id):
         params = json.loads(request.body)
         page = int(params['page'])
 
-        all_items = Component.objects.filter(component_type__id=component_type_id).order_by('id')
-        paginator = Paginator(all_items, 2)
+        del params['page']
+
+        search_box = None
+        search_data = {}
+        for k in params:
+            val = str(params[k]).strip()
+            if val == '':
+                continue
+            if k == 'box':
+                search_box = val
+            else:
+                search_data[str(k)] = val
+
+        search_items = Component.objects.filter(component_type__id=component_type_id)
+
+        if search_box:
+            search_items = search_items.filter(box_id=search_box)
+
+        if len(search_data.keys()) > 0:
+            search_items = search_items.filter(component_data__contains=search_data)
+
+        search_items = search_items.order_by('id')
+
+        paginator = Paginator(search_items, 10)
 
         total_pages = 0
         items = []
