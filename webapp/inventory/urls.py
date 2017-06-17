@@ -11,6 +11,6 @@ urlpatterns = [
 
     url(r'^inventory/(?P<component_id>[0-9]+)/$', views.view_component),
     url(r'^inventory/(?P<component_id>[0-9]+)/edit/$', views.edit_component),
-    url(r'^inventory/(?P<component_id>[0-9]+)/update/$', views.update_component_quantity),
+    url(r'^inventory/(?P<component_id>[0-9]+)/update/quantity/$', views.update_component_quantity),
     url(r'^inventory/(?P<component_id>[0-9]+)/update/box/$', views.update_component_box),
 ]

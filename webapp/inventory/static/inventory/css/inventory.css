@@ -55,7 +55,31 @@ label.control-label {
 	text-align: right;
 }
 
-.quantity-bar {
+.edit-bar {
 	text-align: right;
 }
 
+.label-bar {
+	margin-top: 5px;
+}
+
+.label-box {
+	font-size: 13px;
+}
+
+.modal-info {
+	margin-top: 10px;
+	border: 1px solid #ccc;
+}
+
+.modal-form {
+	width: 100%;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	padding: 10px;
+	text-align: right;
+}
+
+.label-quantity {
+	font-size: 13px;
+}

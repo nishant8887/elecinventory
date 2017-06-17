@@ -80,10 +80,6 @@
                             </div>
                             {% endfor %}
                             <div class="form-group">
-                                <label class="control-label search-input capitalize">Box</label>
-                                <input name="box" data-bind="value: searchPropertySet.box, click: loadPropertyAutoComplete.bind($data, 'box')" class="form-control input-sm">
-                            </div>
-                            <div class="form-group">
                                 <button class="btn btn-default btn-primary" data-bind="click: searchComponent">Search</button>
                             </div>
                         </form>
@@ -93,31 +89,28 @@
             <div class="col-md-9">
                 <div data-bind="visible: searchedItems().length > 0">
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <div class="btn-group">
                                 <button data-bind="click: previous, disable: previousDisable" class="btn btn-default btn-sm glyphicon glyphicon-chevron-left"></button>
                                 <button data-bind="click: next, disable: nextDisable" class="btn btn-default btn-sm glyphicon glyphicon-chevron-right"></button>
                             </div>
-                        </div>
-                        <div class="col-md-6 mode-bar">
-                            <span>Mode </span>
-                            <select data-bind="options: operationModes, optionsText: 'text', optionsValue: 'sign', value: modeSign"></select>
                         </div>
                     </div>
                     <div class="component-search-view" data-bind="foreach: searchedItems">
                         <div class="panel panel-default">
                             <div class="panel-heading">
                                 <div class="row">
-                                    <div class="col-md-6">
-                                        <span data-bind="text: box" class="label label-success"></span>
-                                        <button class="btn btn-default btn-xs glyphicon glyphicon-tag" data-bind="click: $parent.updateBox.bind($data)"></button>
+                                    <div class="col-md-6 label-bar">
+                                        <span data-bind="text: 'Quantity: ' + quantity" class="label label-primary label-quantity"></span>
+                                        <span data-bind="text: box" class="label label-success label-box"></span>
                                     </div>
-                                    <div class="col-md-6 quantity-bar">
-                                        <span data-bind="text: 'Quantity: ' + quantity" class="label label-primary"></span>
+                                    <div class="col-md-6 edit-bar">
                                         <div class="btn-group">
-                                            <button class="btn btn-default btn-xs" data-bind="text: $parent.modeSign() + '1', click: $parent.updateQuantity.bind($data, 1)"></button>
-                                            <button class="btn btn-default btn-xs" data-bind="text: $parent.modeSign() + '10', click: $parent.updateQuantity.bind($data, 10)"></button>
-                                            <button class="btn btn-default btn-xs" data-bind="text: $parent.modeSign() + '100', click: $parent.updateQuantity.bind($data, 100)"></button>
+                                            <button class="btn btn-default btn-sm glyphicon glyphicon-tag" data-bind="click: $parent.updateBox.bind($data)"></button>
+                                            <button class="btn btn-default btn-sm glyphicon glyphicon-plus" data-bind="click: $parent.addQuantity.bind($data)"></button>
+                                            <button class="btn btn-default btn-sm glyphicon glyphicon-minus" data-bind="click: $parent.subtractQuantity.bind($data)"></button>
+                                            <button class="btn btn-default btn-sm glyphicon glyphicon-edit" data-bind="click: $parent.updateComponent.bind($data)"></button>
+                                            <button class="btn btn-default btn-sm glyphicon glyphicon-remove" data-bind="click: $parent.removeComponent.bind($data)"></button>
                                         </div>
                                     </div>
                                 </div>
@@ -164,25 +157,44 @@
             </div>
         </div>
     </div>
-    <div id="editBoxModal" class="modal fade" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-sm" role="document">
+    <div id="updateModal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title capitalize">Change Box</h4>
+                    <h4 class="modal-title capitalize" data-bind="text: updateTitle"></h4>
                 </div>
                 <div class="modal-body">
-                    <form class="form-horizontal">
-                        <div class="form-group">
-                            <label for="editInputBox" class="col-sm-2 control-label">Box</label>
-                            <div class="col-sm-10">
-                                <input type="text" data-bind="value: boxValue" class="form-control" id="editInputBox" placeholder="Box">
+                    <table class="table table-condensed modal-info" data-bind="if: selectedComponent() != null">
+                        <tbody>
+                            <tr><td>Quantity</td><td data-bind="text: selectedComponent().quantity"></td></tr>
+                            <tr><td>Box</td><td data-bind="text: selectedComponent().box"></td></tr>
+                        </tbody>
+                    </table>
+                    <div class="modal-form">
+                        <form class="form-horizontal" data-bind="if: selectedComponent() != null">
+                            <div class="form-group" data-bind="visible: updateMode() == 'change_box'">
+                                <label for="boxInput" class="col-sm-2 control-label">Box</label>
+                                <div class="col-sm-10">
+                                    <input data-bind="value: selectedComponent().box" type="text" class="form-control" id="boxInput" placeholder="Box">
+                                </div>
                             </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button data-dismiss="modal" data-bind="click: saveBox" type="button" class="btn btn-primary">Save</button>
+                            <div class="form-group" data-bind="visible: updateMode() != 'change_box'">
+                                <label for="qInput" class="col-sm-2 control-label">
+                                    <span data-bind="if: updateMode() == 'add_quantity'">Add</span>
+                                    <span data-bind="if: updateMode() == 'subtract_quantity'">Subtract</span>
+                                </label>
+                                <div class="col-sm-10">
+                                    <input type="number" class="form-control" id="qInput" placeholder="Quantity">
+                                </div>
+                            </div>
+                            <button data-dismiss="modal" data-bind="click: updateSubmit" type="button" class="btn btn-primary float-right">Save</button>
+                        </form>
+                    </div>
+                    <table class="table table-condensed modal-info" data-bind="if: selectedComponent() != null">
+                        <tbody data-bind="html: selectedComponent().text">
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

@@ -6,7 +6,6 @@ SearchView = {
     searchedItems: ko.observableArray([]),
     page: ko.observable(0),
     pages: ko.observable(0),
-    modeSign: ko.observable('+'),
     operationModes: [
         {
             'text': 'Add',
@@ -18,11 +17,14 @@ SearchView = {
         },
     ],
 
-    boxValue: ko.observable(''),
-    editBoxId: ko.observable(0),
+    selectedComponent: ko.observable(null),
 
     alert: function(data) {
         console.log(data);
+    },
+
+    refreshPage: function() {
+        this.load(this.page());
     },
 
     addComponent: function() {
@@ -92,6 +94,7 @@ SearchView = {
                 _this.alert("Error in saving component.");
                 return;
             }
+            _this.refreshPage();
         });
     },
 
@@ -113,43 +116,82 @@ SearchView = {
         });
     },
 
+    updateMode: ko.observable(null),
+
     updateBox: function(data) {
         var _this = SearchView;
-        _this.boxValue(data.box);
-        _this.editBoxId(data.id);
-        $("#editBoxModal").modal("show");
+        _this.selectedComponent(data);
+        _this.updateMode('change_box');
+        $("#updateModal").modal("show");
     },
 
-    saveBox: function() {
+    addQuantity: function(data) {
         var _this = SearchView;
-        $.ajax({
-            method: "POST",
-            data: {'box': _this.boxValue()},
-            url: "/inventory/" + _this.editBoxId() + "/update/box/",
-            headers: {
-                "X-CSRFTOKEN": CSRF_TOKEN
-            }
-        }).done(function(data) {
-            _this.load(_this.page());
-        });
+        _this.selectedComponent(data);
+        _this.updateMode('add_quantity');
+        $("#qInput").val(0);
+        $("#updateModal").modal("show");
     },
 
-    updateQuantity: function(q, data) {
+    subtractQuantity: function(data) {
         var _this = SearchView;
-        var val = parseInt(q);
-        if (_this.modeSign() == '-') {
-            val = (-1) *  val;
+        _this.selectedComponent(data);
+        _this.updateMode('subtract_quantity');
+        $("#qInput").val(0);
+        $("#updateModal").modal("show");
+    },
+
+    updateSubmit: function() {
+        var _this = this;
+        if (_this.updateMode() == 'change_box') {
+            var box = $("#boxInput").val();
+            _this.saveBox(_this.selectedComponent().id, box);
+        } else if (_this.updateMode() == 'add_quantity') {
+            var q = $("#qInput").val();
+            var val = parseInt(q);
+            _this.updateQuantity(_this.selectedComponent().id, val);
+        } else if (_this.updateMode() == 'subtract_quantity') {
+            var q = $("#qInput").val();
+            var val = parseInt(q);
+            _this.updateQuantity(_this.selectedComponent().id, (-1) * val);
         }
+        _this.refreshPage();
+    },
+
+    saveBox: function(id, box) {
+        var _this = SearchView;
         $.ajax({
             method: "POST",
-            data: {'diff': val},
-            url: "/inventory/" + data.id + "/update/",
+            data: {'box': box},
+            url: "/inventory/" + id + "/update/box/",
             headers: {
                 "X-CSRFTOKEN": CSRF_TOKEN
             }
         }).done(function(data) {
             _this.load(_this.page());
         });
+    },
+
+    updateQuantity: function(id, data) {
+        var _this = SearchView;
+        $.ajax({
+            method: "POST",
+            data: {'diff': data},
+            url: "/inventory/" + id + "/update/quantity/",
+            headers: {
+                "X-CSRFTOKEN": CSRF_TOKEN
+            }
+        }).done(function(data) {
+            _this.load(_this.page());
+        });
+    },
+
+    updateComponent: function() {
+
+    },
+
+    removeComponent: function() {
+
     },
 
     loadPropertyAutoComplete: function(data, t, e) {
@@ -175,6 +217,17 @@ SearchView = {
 
         _this.previousDisable = ko.computed(function() {
             return (_this.page() == 0);
+        }, _this);
+
+        _this.updateTitle = ko.computed(function() {
+            if (_this.updateMode() == 'change_box') {
+                return 'Change Box';
+            } else if (_this.updateMode() == 'add_quantity') {
+                return 'Add Quantity';
+            } else if (_this.updateMode() == 'subtract_quantity') {
+                return 'Subtract Quantity';
+            }
+            return '';
         }, _this);
     }
 }
