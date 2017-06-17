@@ -118,7 +118,8 @@
                                 </div>
                             </div>
                             <table class="table table-condensed">
-                                <tbody data-bind="html: text">
+                                <tbody data-bind="foreach: properties">
+                                    <tr><td class="col-md-6 capitalize" data-bind="text: name"></td><td class="col-md-6" data-bind="text: value"></td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -197,7 +198,8 @@
                         </form>
                     </div>
                     <table class="table table-condensed modal-info" data-bind="if: selectedComponent() != null">
-                        <tbody data-bind="html: selectedComponent().text">
+                        <tbody data-bind="foreach: selectedComponent().properties">
+                            <tr><td class="col-md-6 capitalize" data-bind="text: name"></td><td class="col-md-6" data-bind="text: value"></td></tr>
                         </tbody>
                     </table>
                 </div>

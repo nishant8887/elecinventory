@@ -123,7 +123,7 @@ def search_items(request, component_type_id):
         total_pages = 0
         items = []
 
-        properties = ComponentType.objects.get(id=component_type_id).properties.all()
+        properties = ComponentType.objects.get(id=component_type_id).properties.order_by('componenttypeproperties__order')
 
         try:
             objs = paginator.page(page + 1)
@@ -134,24 +134,20 @@ def search_items(request, component_type_id):
                     'quantity': obj.quantity
                 }
                 s_text = ''
+                s_properties = []
                 for p in properties:
-                    pv = obj.component_data.get(p.name, '-')
+                    pv = obj.component_data.get(p.name, None)
 
-                    show_unit = False
-                    if p.unit:
-                        show_unit = True
-
-                    if pv == '':
-                        pv = '-'
-                        show_unit = False
-
-                    if show_unit:
-                        s_text += '<tr><td class="col-md-6">'+ p.name.title() + '</d><td class="col-md-6">' + pv + ' ' + p.unit + '</td></tr>'
+                    if pv is not None and pv != '':
+                        if p.unit:
+                            s_properties.append({'name': str(p.name), 'value': pv + ' ' + p.unit})
+                        else:
+                            s_properties.append({'name': str(p.name), 'value': pv})
                     else:
-                        s_text += '<tr><td class="col-md-6">'+ p.name.title() + '</td><td class="col-md-6">' + pv + '</td></tr>'
+                        s_properties.append({'name': str(p.name), 'value': '-'})
 
-                    v['text'] = s_text
- 
+                v['properties'] = s_properties
+
                 items.append(v)
 
             total_pages = paginator.num_pages
@@ -207,7 +203,7 @@ def update_component_box(request, component_id):
 def process_component(component, parameters):
     data = {}
     errors = []
-    for component_property in component.properties.all():
+    for component_property in component.properties.order_by('componenttypeproperties__order'):
         property_value = parameters.get(component_property.name, None)
         if property_value is None or str(property_value).strip() == '':
             data[component_property.name] = ''

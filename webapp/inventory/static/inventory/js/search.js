@@ -29,19 +29,6 @@ SearchView = {
         this.load(this.page());
     },
 
-    addComponent: function() {
-        var data = ko.toJS(this.searchPropertySet);
-
-        for (var index in data) {
-            if (index.startsWith("property_")) {
-                var val = data[index];
-                this.dialogPropertySet[index](val);
-            }
-        }
-
-        $("#addComponentModal").modal("show");
-    },
-
     searchComponent: function() {
         var data = this.searchPropertySet.toJS();
         this.load(0);
@@ -91,6 +78,22 @@ SearchView = {
         }
     },
 
+    addComponent: function() {
+        var data = ko.toJS(this.searchPropertySet);
+
+        for (var index in data) {
+            if (index.startsWith("property_")) {
+                var val = data[index];
+                this.dialogPropertySet[index](val);
+            }
+        }
+
+        this.dialogPropertySet['box']('');
+        this.dialogPropertySet['quantity'](0);
+
+        $("#addComponentModal").modal("show");
+    },
+
     saveComponent: function() {
         var _this = this;
         _this.loader(true);
@@ -104,8 +107,8 @@ SearchView = {
         });
     },
 
-    updateComponent: function() {
-
+    updateComponent: function(data) {
+        console.log(data);
     },
 
     removeComponent: function(data) {
