@@ -7,7 +7,7 @@ from django.contrib.postgres.fields import HStoreField
 
 # Create your models here.
 class Property(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     unit = models.CharField(max_length=100, null=True, blank=True)
 
     class Meta:
@@ -17,7 +17,7 @@ class Property(models.Model):
         return '%s' % self.name
 
 class ComponentType(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     properties = models.ManyToManyField(Property)
 
     def __unicode__(self):
