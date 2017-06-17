@@ -19,6 +19,8 @@ SearchView = {
 
     selectedComponent: ko.observable(null),
 
+    dialogError: ko.observable('Error Occured!'),
+
     alert: function(data) {
         console.log(data);
     },
@@ -50,6 +52,10 @@ SearchView = {
         var v = _this.searchPropertySet.toJS();
         v['page'] = page;
         _this.callSearch(v, function(data) {
+            if (data == null) {
+                _this.alert("Error in executing search query.");
+                return;
+            }
             _this.page(parseInt(data.page));
             _this.pages(parseInt(data.pages));
             _this.searchedItems(data.data);
@@ -98,6 +104,17 @@ SearchView = {
         });
     },
 
+    updateComponent: function() {
+
+    },
+
+    removeComponent: function(data) {
+        var _this = SearchView;
+        _this.selectedComponent(data);
+        _this.updateMode('remove_component');
+        $("#updateModal").modal("show");
+    },
+
     add: function(callback) {
         var data = this.dialogPropertySet.toJS();
         $.ajax({
@@ -106,6 +123,20 @@ SearchView = {
             processData: false,
             contentType: "application/json",
             url: "/components/" + COMPONENT_TYPE_ID + "/add/",
+            headers: {
+                "X-CSRFTOKEN": CSRF_TOKEN
+            }
+        }).done(function(data) {
+            callback(data);
+        }).fail(function() {
+            callback(null);
+        });
+    },
+
+    delete: function(id, callback) {
+        $.ajax({
+            method: "DELETE",
+            url: "/inventory/" + id + "/",
             headers: {
                 "X-CSRFTOKEN": CSRF_TOKEN
             }
@@ -145,20 +176,57 @@ SearchView = {
         var _this = this;
         if (_this.updateMode() == 'change_box') {
             var box = $("#boxInput").val();
-            _this.saveBox(_this.selectedComponent().id, box);
+            _this.loader(true);
+            _this.saveBox(_this.selectedComponent().id, box, function(data) {
+                _this.loader(false);
+                if (data == null) {
+                    _this.alert("Error in saving box.");
+                    return;
+                }
+                _this.refreshPage();
+            });
+
         } else if (_this.updateMode() == 'add_quantity') {
             var q = $("#qInput").val();
             var val = parseInt(q);
-            _this.updateQuantity(_this.selectedComponent().id, val);
+            _this.loader(true);
+            _this.updateQuantity(_this.selectedComponent().id, val, function(data) {
+                _this.loader(false);
+                if (data == null) {
+                    _this.alert("Error in changing quantity.");
+                    return;
+                }
+                _this.refreshPage();
+            });
+
         } else if (_this.updateMode() == 'subtract_quantity') {
             var q = $("#qInput").val();
             var val = parseInt(q);
-            _this.updateQuantity(_this.selectedComponent().id, (-1) * val);
+
+            _this.loader(true);
+            _this.updateQuantity(_this.selectedComponent().id, (-1) * val, function(data) {
+                _this.loader(false);
+                if (data == null) {
+                    _this.alert("Error in changing quantity.");
+                    return;
+                }
+                _this.refreshPage();
+            });
+
+        } else if (_this.updateMode() == 'remove_component') {
+            _this.loader(true);
+            _this.delete(_this.selectedComponent().id, function(data) {
+                _this.loader(false);
+                if (data == null) {
+                    _this.alert("Error in deleting component.");
+                    return;
+                }
+                _this.refreshPage();
+            });
         }
-        _this.refreshPage();
     },
 
-    saveBox: function(id, box) {
+    saveBox: function(id, box, callback) {
         var _this = SearchView;
         $.ajax({
             method: "POST",
@@ -168,11 +236,13 @@ SearchView = {
                 "X-CSRFTOKEN": CSRF_TOKEN
             }
         }).done(function(data) {
-            _this.load(_this.page());
+            callback(data);
+        }).fail(function() {
+            callback(null);
         });
     },
 
-    updateQuantity: function(id, data) {
+    updateQuantity: function(id, data, callback) {
         var _this = SearchView;
         $.ajax({
             method: "POST",
@@ -182,16 +252,10 @@ SearchView = {
                 "X-CSRFTOKEN": CSRF_TOKEN
             }
         }).done(function(data) {
-            _this.load(_this.page());
+            callback(data);
+        }).fail(function() {
+            callback(null);
         });
-    },
-
-    updateComponent: function() {
-
-    },
-
-    removeComponent: function() {
-
     },
 
     loadPropertyAutoComplete: function(data, t, e) {
@@ -214,7 +278,7 @@ SearchView = {
             $(target).autocomplete({
                 source: data.property_values
             });
-        });
+        })
     },
 
     init: function() {
@@ -237,6 +301,8 @@ SearchView = {
                 return 'Add Quantity';
             } else if (_this.updateMode() == 'subtract_quantity') {
                 return 'Subtract Quantity';
+            } else if (_this.updateMode() == 'remove_component') {
+                return 'Delete Component';
             }
             return '';
         }, _this);

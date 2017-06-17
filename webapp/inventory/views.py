@@ -193,6 +193,10 @@ def update_component_quantity(request, component_id):
 def update_component_box(request, component_id):
     if request.method == 'POST':
         box = request.POST.get('box', '')
+
+        if box.trim() == '':
+            return HttpResponse(status=400)
+
         component = Component.objects.get(id=component_id)
         component.box_id = box
         component.save(update_fields=['box_id'])
@@ -269,38 +273,25 @@ def logout_view(request):
     return HttpResponseRedirect('/')
 
 
-# Old views
 @login_required
-def edit_component(request, component_id):
+def edit_or_delete_component(request, component_id):
     component = Component.objects.get(id=component_id)
     component_type = component.component_type
-    errors = []
 
     if request.method == "POST":
-        data, errors = process_component(component_type, request.POST)
-        if len(errors) == 0:
-            component.quantity = data['quantity']
-            component.box_id = data['box']
-            del data['quantity']
-            del data['box']
-            component.component_data = data
-            component.save()
-            return HttpResponseRedirect('/inventory/%s/' % component_id)
-    else:
-        data = component.component_data
-        data['quantity'] = component.quantity
-        data['box'] = component.box_id
+        # data, errors = process_component(component_type, request.POST)
+        # if len(errors) == 0:
+        #     component.quantity = data['quantity']
+        #     component.box_id = data['box']
+        #     del data['quantity']
+        #     del data['box']
+        #     component.component_data = data
+        #     component.save()
+        #     return HttpResponse(json.dumps({}), content_type="application/json")
+        return HttpResponse(status=404)
 
-    return render(request, 'inventory/component.html', {'edit_type': True, 'name': component_type.name, 'properties': component_type.properties.all, 'errors': errors, 'data': data})
+    elif request.method == "DELETE":
+        component.delete()
+        return HttpResponse(json.dumps({}), content_type="application/json")
 
-
-@login_required
-def view_component(request, component_id):
-    component = Component.objects.get(id=component_id)
-    component_type = component.component_type
-
-    data = component.component_data
-    data['quantity'] = component.quantity
-    data['box'] = component.box_id
-
-    return render(request, 'inventory/component_view.html', {'id': component.id, 'name': component_type.name, 'properties': component_type.properties.all, 'data': data})
+    return HttpResponse(status=405)
