@@ -39,6 +39,24 @@
             return final_component;
         }
 
+        this.fromJS = function(data) {
+            var property_map = {}
+            for (var index in data.properties) {
+                var val = data.properties[index];
+                property_map[val['name']] = val['value'];
+            }
+
+            for (var index in this.properties) {
+                var val = this.properties[index];
+                var value_from_data = property_map[val[1]];
+                if (value_from_data != '-') {
+                    this[val[0]](value_from_data);
+                }
+            }
+            this.box(data.box);
+            this.quantity(data.quantity);
+        }
+
         return this;
     }
 </script>
@@ -119,7 +137,7 @@
                             </div>
                             <table class="table table-condensed">
                                 <tbody data-bind="foreach: properties">
-                                    <tr><td class="col-md-6 capitalize" data-bind="text: name"></td><td class="col-md-6" data-bind="text: value"></td></tr>
+                                    <tr><td class="col-md-6 capitalize" data-bind="text: name"></td><td class="col-md-6"><span data-bind="text: value"></span> <span data-bind="text: unit"></span></td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -129,19 +147,20 @@
             </div>
         <div>
     </div>
-    <div id="addComponentModal" class="modal fade" tabindex="-1" role="dialog">
+    <div id="addEditComponentModal" class="modal fade" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title capitalize">Add {{ component_type.name }} </h4>
+                    <h4 class="modal-title capitalize" data-bind="visible: componentDialogMode() == 'add'">Add {{ component_type.name }} </h4>
+                    <h4 class="modal-title capitalize" data-bind="visible: componentDialogMode() == 'edit'">Edit {{ component_type.name }} </h4>
                 </div>
                 <div class="modal-body">
                     <form>
                         {% for property in properties %}
                         <div class="form-group">
                             <label class="control-label search-input capitalize">{{ property.name }} {% if property.unit %}({{ property.unit }}) {% endif %}</label>
-                            <input name="{{property.name}}" data-bind="value: dialogPropertySet.property_{{forloop.counter}}, enable: searchPropertySet.property_{{forloop.counter}}().trim() == ''" class="form-control input-sm">
+                            <input name="{{property.name}}" data-bind="value: dialogPropertySet.property_{{forloop.counter}}, enable: searchPropertySet.property_{{forloop.counter}}().trim() == '' || componentDialogMode() == 'edit'" class="form-control input-sm">
                         </div>
                         {% endfor %}
                         <div class="form-group">
@@ -199,7 +218,7 @@
                     </div>
                     <table class="table table-condensed modal-info" data-bind="if: selectedComponent() != null">
                         <tbody data-bind="foreach: selectedComponent().properties">
-                            <tr><td class="col-md-6 capitalize" data-bind="text: name"></td><td class="col-md-6" data-bind="text: value"></td></tr>
+                            <tr><td class="col-md-6 capitalize" data-bind="text: name"></td><td class="col-md-6"><span data-bind="text: value"></span> <span data-bind="text: unit"></span></td></tr>
                         </tbody>
                     </table>
                 </div>

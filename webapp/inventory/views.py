@@ -140,11 +140,11 @@ def search_items(request, component_type_id):
 
                     if pv is not None and pv != '':
                         if p.unit:
-                            s_properties.append({'name': str(p.name), 'value': pv + ' ' + p.unit})
+                            s_properties.append({'name': str(p.name), 'value': pv, 'unit': p.unit})
                         else:
-                            s_properties.append({'name': str(p.name), 'value': pv})
+                            s_properties.append({'name': str(p.name), 'value': pv, 'unit': ''})
                     else:
-                        s_properties.append({'name': str(p.name), 'value': '-'})
+                        s_properties.append({'name': str(p.name), 'value': '-', 'unit': ''})
 
                 v['properties'] = s_properties
 
@@ -274,16 +274,17 @@ def edit_or_delete_component(request, component_id):
     component = Component.objects.get(id=component_id)
     component_type = component.component_type
 
-    if request.method == "POST":
-        # data, errors = process_component(component_type, request.POST)
-        # if len(errors) == 0:
-        #     component.quantity = data['quantity']
-        #     component.box_id = data['box']
-        #     del data['quantity']
-        #     del data['box']
-        #     component.component_data = data
-        #     component.save()
-        #     return HttpResponse(json.dumps({}), content_type="application/json")
+    if request.method == "PUT":
+        req_data = json.loads(request.body)
+        data, errors = process_component(component_type, req_data)
+        if len(errors) == 0:
+            component.quantity = data['quantity']
+            component.box_id = data['box']
+            del data['quantity']
+            del data['box']
+            component.component_data = data
+            component.save()
+            return HttpResponse(json.dumps({}), content_type="application/json")
         return HttpResponse(status=404)
 
     elif request.method == "DELETE":

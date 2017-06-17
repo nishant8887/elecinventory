@@ -6,23 +6,17 @@ SearchView = {
     searchedItems: ko.observableArray([]),
     page: ko.observable(0),
     pages: ko.observable(0),
-    operationModes: [
-        {
-            'text': 'Add',
-            'sign': '+'
-        },
-        {
-            'text': 'Subtract',
-            'sign': '-'
-        },
-    ],
 
     selectedComponent: ko.observable(null),
+
+    componentDialogMode: ko.observable(null),
+    updateMode: ko.observable(null),
 
     dialogError: ko.observable('Error Occured!'),
 
     alert: function(data) {
-        console.log(data);
+        this.dialogError(data);
+        $("#alertModal").modal("show");
     },
 
     refreshPage: function() {
@@ -91,24 +85,47 @@ SearchView = {
         this.dialogPropertySet['box']('');
         this.dialogPropertySet['quantity'](0);
 
-        $("#addComponentModal").modal("show");
+        this.componentDialogMode('add');
+        $("#addEditComponentModal").modal("show");
     },
 
     saveComponent: function() {
         var _this = this;
-        _this.loader(true);
-        _this.add(function(data) {
+        var s_func = function(data) {
             _this.loader(false);
             if (data == null) {
                 _this.alert("Error in saving component.");
                 return;
             }
             _this.refreshPage();
-        });
+        }
+
+        _this.loader(true);
+        if (_this.componentDialogMode() == 'add') {
+            _this.add(s_func);
+        } else {
+            _this.edit(s_func);
+        }
     },
 
     updateComponent: function(data) {
-        console.log(data);
+        var _this = SearchView;
+
+        _this.selectedComponent(data);
+
+        var p = new PropertySet();
+        p.fromJS(data);
+
+        var p_data = ko.toJS(p);
+        for (var index in p_data) {
+            if (index.startsWith("property_") || index == 'box' || index == 'quantity') {
+                var val = p_data[index];
+                _this.dialogPropertySet[index](val);
+            }
+        }
+
+        _this.componentDialogMode('edit');
+        $("#addEditComponentModal").modal("show");
     },
 
     removeComponent: function(data) {
@@ -136,6 +153,25 @@ SearchView = {
         });
     },
 
+    edit: function(callback) {
+        var data = this.dialogPropertySet.toJS();
+        var id = this.selectedComponent().id;
+        $.ajax({
+            method: "PUT",
+            data: JSON.stringify(data),
+            processData: false,
+            contentType: "application/json",
+            url: "/inventory/" + id + "/",
+            headers: {
+                "X-CSRFTOKEN": CSRF_TOKEN
+            }
+        }).done(function(data) {
+            callback(data);
+        }).fail(function() {
+            callback(null);
+        });
+    },
+
     delete: function(id, callback) {
         $.ajax({
             method: "DELETE",
@@ -149,8 +185,6 @@ SearchView = {
             callback(null);
         });
     },
-
-    updateMode: ko.observable(null),
 
     updateBox: function(data) {
         var _this = SearchView;
