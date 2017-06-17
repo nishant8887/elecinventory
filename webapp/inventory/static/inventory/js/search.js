@@ -199,7 +199,18 @@ SearchView = {
     },
 
     getPropertyValues: function(target, property) {
-        $.getJSON("/components/" + COMPONENT_TYPE_ID + "/property_values/?property=" + property, function(data) {
+        var _this = SearchView;
+        var v = _this.searchPropertySet.toJS();
+        v["property"] = property;
+        $.ajax({
+            method: "POST",
+            data: JSON.stringify(v),
+            processData: false,
+            url: "/components/" + COMPONENT_TYPE_ID + "/property_values/",
+            headers: {
+                "X-CSRFTOKEN": CSRF_TOKEN
+            }
+        }).done(function(data) {
             $(target).autocomplete({
                 source: data.property_values
             });

@@ -39,17 +39,34 @@ def add_component(request, component_type_id):
     raise Http404
 
 def get_property_values(request, component_type_id):
-    if request.method == "GET":
-        component_property = request.GET.get("property", None)
+    if request.method == "POST":
+        data = json.loads(request.body)
+
+        component_property = data['property']
+        del data['property']
+
         if component_property is None:
             raise Http404
 
+        search_data = {}
+        for k in data:
+            val = str(data[k]).strip()
+            if val == '':
+                continue
+            if k != 'box':
+                search_data[str(k)] = val
+
+        if search_data.has_key(str(component_property)):
+            del search_data[str(component_property)]
+
+        search_items = Component.objects.filter(component_type__id=component_type_id, component_data__contains=search_data)
+
         property_values = []
         if component_property == 'box':
-            property_values = Component.objects.filter(component_type__id=component_type_id).values_list('box_id', flat=True).distinct()
+            property_values = search_items.values_list('box_id', flat=True).distinct()
         else:
             component_value_str = "component_data -> '%s'" % component_property
-            property_values = Component.objects.filter(component_type__id=component_type_id).extra(select=dict(v=component_value_str)).values_list('v', flat=True).distinct()
+            property_values = search_items.extra(select=dict(v=component_value_str)).values_list('v', flat=True).distinct()
 
         property_values_list = []
         for v in property_values:
@@ -208,7 +225,6 @@ def process_component(component, parameters):
     else:
         data['box'] = box
 
-    print data
     return data, errors
 
 # Create your views here.
