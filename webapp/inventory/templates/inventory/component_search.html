@@ -106,11 +106,13 @@
                                     </div>
                                     <div class="col-md-6 edit-bar">
                                         <div class="btn-group">
-                                            <button class="btn btn-default btn-sm glyphicon glyphicon-tag" data-bind="click: $parent.updateBox.bind($data)"></button>
                                             <button class="btn btn-default btn-sm glyphicon glyphicon-plus" data-bind="click: $parent.addQuantity.bind($data)"></button>
                                             <button class="btn btn-default btn-sm glyphicon glyphicon-minus" data-bind="click: $parent.subtractQuantity.bind($data)"></button>
-                                            <button class="btn btn-default btn-sm glyphicon glyphicon-edit" data-bind="click: $parent.updateComponent.bind($data)"></button>
-                                            <button class="btn btn-default btn-sm glyphicon glyphicon-remove" data-bind="click: $parent.removeComponent.bind($data)"></button>
+                                            <button class="btn btn-default btn-sm glyphicon glyphicon-tag" data-bind="click: $parent.updateBox.bind($data)"></button>
+                                            {% if user.is_staff %}
+                                                <button class="btn btn-default btn-sm glyphicon glyphicon-edit" data-bind="click: $parent.updateComponent.bind($data)"></button>
+                                                <button class="btn btn-default btn-sm glyphicon glyphicon-remove" data-bind="click: $parent.removeComponent.bind($data)"></button>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
