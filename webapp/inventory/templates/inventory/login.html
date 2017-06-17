@@ -1,0 +1,39 @@
+{% extends "main/base.html" %}
+{% load staticfiles %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{% static 'main/css/bootstrap.min.css' %}">
+<link rel="stylesheet" href="{% static 'inventory/css/inventory.css' %}">
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'main/js/jquery-3.2.1.min.js' %}"></script>
+<script src="{% static 'main/js/bootstrap.min.js' %}"></script>
+{% endblock %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<body>
+	<div class="login-img">
+		<img class="title-img" src="{% static 'inventory/images/logo.png' %}"></img>
+	</div>
+	<div class="login-box">
+		<h4>Welcome to eInventory!</h4>
+		<p>Please login with your credentials</p>
+		<form class="form" method="post" action="/">
+			{% csrf_token %}
+			<div class="form-group">
+				<input type="text" class="form-control" name="username" placeholder="Username" value="{{ username }}">
+			</div>
+			<div class="form-group">
+				<input type="password" class="form-control" name="password" placeholder="Password">
+			</div>
+			{% if error %}
+				<p class="help-block login-alert">{{ error }}</p>
+			{% endif %}
+			<button type="submit" class="btn btn-primary btn-lg btn-block login-btn">Login</button>
+		</form>
+	</div>
+</body>
+{% endblock %}

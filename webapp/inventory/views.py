@@ -3,21 +3,30 @@ from __future__ import unicode_literals
 
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, Http404
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import AnonymousUser
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from .models import ComponentType, Property, Component
 import json
 
+
+@login_required
 def list_components(request):
     component_types = ComponentType.objects.all()
     return render(request, 'inventory/component_list.html', {'components': component_types})
 
+
+@login_required
 def search_components(request, component_type_id):
     component_type = ComponentType.objects.get(id=component_type_id)
     properties = component_type.properties.all()
     return render(request, 'inventory/component_search.html', {'component_type': component_type, 'properties': properties})
 
+
+@login_required
 def add_component(request, component_type_id):
     component_type = get_object_or_404(ComponentType, id=component_type_id)
     errors = []
@@ -36,8 +45,10 @@ def add_component(request, component_type_id):
             c.save()
             return HttpResponse(json.dumps({}), content_type="application/json")
         return HttpResponse({"errors": errors}, content_type="application/json", status=400)
-    raise Http404
+    return HttpResponse(status=405)
 
+
+@login_required
 def get_property_values(request, component_type_id):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -75,8 +86,10 @@ def get_property_values(request, component_type_id):
             property_values_list.append(v)
 
         return HttpResponse(json.dumps({'property_values': property_values_list}), content_type="application/json")
-    raise Http404
+    return HttpResponse(status=405)
 
+
+@login_required
 def search_items(request, component_type_id):
     if request.method == "POST":
         params = json.loads(request.body)
@@ -133,9 +146,9 @@ def search_items(request, component_type_id):
                         show_unit = False
 
                     if show_unit:
-                        s_text += '<tr><td>'+ p.name.title() + '</d><td>' + pv + ' ' + p.unit.title() + '</td></tr>'
+                        s_text += '<tr><td class="col-md-6">'+ p.name.title() + '</d><td class="col-md-6">' + pv + ' ' + p.unit.title() + '</td></tr>'
                     else:
-                        s_text += '<tr><td>'+ p.name.title() + '</td><td>' + pv + '</td></tr>'
+                        s_text += '<tr><td class="col-md-6">'+ p.name.title() + '</td><td class="col-md-6">' + pv + '</td></tr>'
 
                     v['text'] = s_text
  
@@ -153,8 +166,10 @@ def search_items(request, component_type_id):
         }
 
         return HttpResponse(json.dumps(result), content_type="application/json")
-    raise Http404
+    return HttpResponse(status=405)
 
+
+@login_required
 def update_component_quantity(request, component_id):
     if request.method == 'POST':
         q = request.POST.get('diff', 0)
@@ -171,9 +186,10 @@ def update_component_quantity(request, component_id):
 
         component.save(update_fields=['quantity'])
         return HttpResponse(json.dumps({}), content_type='application/json')
-    else:
-        return HttpResponse(json.dumps({}), content_type='application/json')
+    return HttpResponse(status=405)
 
+
+@login_required
 def update_component_box(request, component_id):
     if request.method == 'POST':
         box = request.POST.get('box', '')
@@ -181,9 +197,10 @@ def update_component_box(request, component_id):
         component.box_id = box
         component.save(update_fields=['box_id'])
         return HttpResponse(json.dumps({}), content_type='application/json')
-    else:
-        return HttpResponse(json.dumps({}), content_type='application/json')
+    return HttpResponse(status=405)
 
+
+@login_required
 def process_component(component, parameters):
     data = {}
     errors = []
@@ -227,7 +244,34 @@ def process_component(component, parameters):
 
     return data, errors
 
-# Create your views here.
+
+def login_view(request):
+    if request.method == 'GET':
+        if request.user != AnonymousUser():
+            return HttpResponseRedirect('/components/')
+        return render(request, 'inventory/login.html', {})
+    if request.method == 'POST':
+        username = request.POST.get('username', None)
+        password = request.POST.get('password', None)
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            return HttpResponseRedirect('/components/')
+        else:
+            error = "Invalid username or password. Try again."
+            return render(request, 'inventory/login.html', {'error': error, 'username': username})
+    return HttpResponse(status=405)
+
+
+@login_required
+def logout_view(request):
+    logout(request)
+    return HttpResponseRedirect('/')
+
+
+# Old views
+@login_required
 def edit_component(request, component_id):
     component = Component.objects.get(id=component_id)
     component_type = component.component_type
@@ -250,6 +294,8 @@ def edit_component(request, component_id):
 
     return render(request, 'inventory/component.html', {'edit_type': True, 'name': component_type.name, 'properties': component_type.properties.all, 'errors': errors, 'data': data})
 
+
+@login_required
 def view_component(request, component_id):
     component = Component.objects.get(id=component_id)
     component_type = component.component_type
