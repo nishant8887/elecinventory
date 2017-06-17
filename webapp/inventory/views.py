@@ -200,7 +200,6 @@ def update_component_box(request, component_id):
     return HttpResponse(status=405)
 
 
-@login_required
 def process_component(component, parameters):
     data = {}
     errors = []
