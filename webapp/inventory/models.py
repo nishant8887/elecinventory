@@ -18,7 +18,7 @@ class Property(models.Model):
 
 class ComponentType(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    properties = models.ManyToManyField(Property)
+    properties = models.ManyToManyField(Property, through='ComponentTypeProperties')
 
     def __unicode__(self):
         return '%s' % self.name
@@ -31,3 +31,8 @@ class Component(models.Model):
 
     def __unicode__(self):
         return '%s_%s' % (self.component_type.name, self.id)
+
+class ComponentTypeProperties(models.Model):
+    component_type = models.ForeignKey(ComponentType, on_delete=models.CASCADE)
+    property = models.ForeignKey(Property, on_delete=models.CASCADE)
+    order = models.IntegerField()

@@ -22,7 +22,7 @@ def list_components(request):
 @login_required
 def search_components(request, component_type_id):
     component_type = ComponentType.objects.get(id=component_type_id)
-    properties = component_type.properties.all()
+    properties = component_type.properties.order_by('componenttypeproperties__order')
     return render(request, 'inventory/component_search.html', {'component_type': component_type, 'properties': properties})
 
 
@@ -146,7 +146,7 @@ def search_items(request, component_type_id):
                         show_unit = False
 
                     if show_unit:
-                        s_text += '<tr><td class="col-md-6">'+ p.name.title() + '</d><td class="col-md-6">' + pv + ' ' + p.unit.title() + '</td></tr>'
+                        s_text += '<tr><td class="col-md-6">'+ p.name.title() + '</d><td class="col-md-6">' + pv + ' ' + p.unit + '</td></tr>'
                     else:
                         s_text += '<tr><td class="col-md-6">'+ p.name.title() + '</td><td class="col-md-6">' + pv + '</td></tr>'
 
