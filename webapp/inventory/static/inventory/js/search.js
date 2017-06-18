@@ -353,7 +353,13 @@ SearchView = {
                 return value;
             }
 
-            if (v >= 1e9) {
+            if (v >= 1e15) {
+                nv = v * 1e-15;
+                return Number(nv.toFixed(3)) + ' P';
+            } else if (v >= 1e12) {
+                nv = v * 1e-12;
+                return Number(nv.toFixed(3)) + ' T';
+            } else if (v >= 1e9) {
                 nv = v * 1e-9;
                 return Number(nv.toFixed(3)) + ' G';
             } else if (v >= 1e6) {
@@ -376,6 +382,9 @@ SearchView = {
             } else if (v >= 1e-12) {
                 nv = v * 1e12;
                 return Number(nv.toFixed(3)) + ' p';
+            } else if (v >= 1e-15) {
+                nv = v * 1e15;
+                return Number(nv.toFixed(3)) + ' f';
             }
             return Number(v.toFixed(3)) + ' ';
         }
