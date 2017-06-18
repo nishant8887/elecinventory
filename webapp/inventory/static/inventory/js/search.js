@@ -355,29 +355,29 @@ SearchView = {
 
             if (v >= 1e9) {
                 nv = v * 1e-9;
-                return nv + ' G';
+                return Number(nv.toFixed(3)) + ' G';
             } else if (v >= 1e6) {
                 nv = v * 1e-6;
-                return nv + ' M';
+                return Number(nv.toFixed(3)) + ' M';
             } else if (v >= 1e3) {
                 nv = v * 1e-3;
-                return nv + ' k';
+                return Number(nv.toFixed(3)) + ' k';
             } else if (v >= 1) {
-                return v;
+                return Number(v.toFixed(3)) + ' ';
             } else if (v >= 1e-3) {
                 nv = v * 1e3;
-                return nv + ' m';
+                return Number(nv.toFixed(3)) + ' m';
             } else if (v >= 1e-6) {
                 nv = v * 1e6;
-                return nv + ' u';
+                return Number(nv.toFixed(3)) + ' u';
             } else if (v >= 1e-9) {
                 nv = v * 1e9;
-                return nv + ' n';
+                return Number(nv.toFixed(3)) + ' n';
             } else if (v >= 1e-12) {
                 nv = v * 1e12;
-                return nv + ' p';
+                return Number(nv.toFixed(3)) + ' p';
             }
-            return v;
+            return Number(v.toFixed(3)) + ' ';
         }
         return value;
     }
