@@ -137,7 +137,7 @@
                             </div>
                             <table class="table table-condensed">
                                 <tbody data-bind="foreach: properties">
-                                    <tr><td class="col-md-6 capitalize" data-bind="text: name"></td><td class="col-md-6"><span data-bind="text: value"></span> <span data-bind="text: unit"></span></td></tr>
+                                    <tr><td class="col-md-6 capitalize" data-bind="text: name"></td><td class="col-md-6"><span data-bind="text: $root.displayPropertyValue(value, unit)"></span><span data-bind="text: unit"></span></td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -218,7 +218,7 @@
                     </div>
                     <table class="table table-condensed modal-info" data-bind="if: selectedComponent() != null">
                         <tbody data-bind="foreach: selectedComponent().properties">
-                            <tr><td class="col-md-6 capitalize" data-bind="text: name"></td><td class="col-md-6"><span data-bind="text: value"></span> <span data-bind="text: unit"></span></td></tr>
+                            <tr><td class="col-md-6 capitalize" data-bind="text: name"></td><td class="col-md-6"><span data-bind="text: $root.displayPropertyValue(value, unit)"></span><span data-bind="text: unit"></span></td></tr>
                         </tbody>
                     </table>
                 </div>

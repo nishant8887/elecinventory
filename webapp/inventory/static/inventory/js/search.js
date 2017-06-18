@@ -343,6 +343,43 @@ SearchView = {
             }
             return '';
         }, _this);
+    },
+
+    displayPropertyValue: function(value, unit) {
+        if (unit != '') {
+            try {
+                v = parseFloat(value);
+            } catch (e) {
+                return value;
+            }
+
+            if (v >= 1e9) {
+                nv = v * 1e-9;
+                return nv + ' G';
+            } else if (v >= 1e6) {
+                nv = v * 1e-6;
+                return nv + ' M';
+            } else if (v >= 1e3) {
+                nv = v * 1e-3;
+                return nv + ' k';
+            } else if (v >= 1) {
+                return v;
+            } else if (v >= 1e-3) {
+                nv = v * 1e3;
+                return nv + ' m';
+            } else if (v >= 1e-6) {
+                nv = v * 1e6;
+                return nv + ' u';
+            } else if (v >= 1e-9) {
+                nv = v * 1e9;
+                return nv + ' n';
+            } else if (v >= 1e-12) {
+                nv = v * 1e12;
+                return nv + ' p';
+            }
+            return v;
+        }
+        return value;
     }
 }
 
