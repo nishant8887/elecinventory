@@ -127,8 +127,8 @@
                                             <button class="btn btn-default btn-sm glyphicon glyphicon-plus" data-bind="click: $parent.addQuantity.bind($data)"></button>
                                             <button class="btn btn-default btn-sm glyphicon glyphicon-minus" data-bind="click: $parent.subtractQuantity.bind($data)"></button>
                                             <button class="btn btn-default btn-sm glyphicon glyphicon-tag" data-bind="click: $parent.updateBox.bind($data)"></button>
+                                            <button class="btn btn-default btn-sm glyphicon glyphicon-edit" data-bind="click: $parent.updateComponent.bind($data)"></button>
                                             {% if user.is_staff %}
-                                                <button class="btn btn-default btn-sm glyphicon glyphicon-edit" data-bind="click: $parent.updateComponent.bind($data)"></button>
                                                 <button class="btn btn-default btn-sm glyphicon glyphicon-remove" data-bind="click: $parent.removeComponent.bind($data)"></button>
                                             {% endif %}
                                         </div>
@@ -163,11 +163,11 @@
                             <input name="{{property.name}}" data-bind="value: dialogPropertySet.property_{{forloop.counter}}, enable: searchPropertySet.property_{{forloop.counter}}().trim() == '' || componentDialogMode() == 'edit'" class="form-control input-sm">
                         </div>
                         {% endfor %}
-                        <div class="form-group">
+                        <div class="form-group" data-bind="if: componentDialogMode() != 'edit'">
                             <label class="control-label search-input capitalize">Box</label>
                             <input name="box" data-bind="value: dialogPropertySet.box" class="form-control input-sm">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" data-bind="if: componentDialogMode() != 'edit'">
                             <label class="control-label search-input capitalize">Quantity</label>
                             <input name="quantity" data-bind="value: dialogPropertySet.quantity" class="form-control input-sm">
                         </div>

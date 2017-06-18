@@ -278,10 +278,12 @@ def edit_or_delete_component(request, component_id):
         req_data = json.loads(request.body)
         data, errors = process_component(component_type, req_data)
         if len(errors) == 0:
-            component.quantity = data['quantity']
-            component.box_id = data['box']
-            del data['quantity']
-            del data['box']
+            if data.has_key('quantity'):
+                del data['quantity']
+
+            if data.has_key('box'):
+                del data['box']
+
             component.component_data = data
             component.save()
             return HttpResponse(json.dumps({}), content_type="application/json")
