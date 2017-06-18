@@ -36,9 +36,13 @@ class Component(models.Model):
 
     def validate_unique(self, exclude=None):
         super(Component, self).validate_unique(exclude)
-        existing_count = self.__class__.objects.filter(component_type=self.component_type, component_data__contains=self.component_data).count()
-        if existing_count != 0:
-            raise ValidationError('Component already exists.')
+        existing = self.__class__.objects.filter(component_type=self.component_type, component_data__contains=self.component_data)
+        if self.pk is None:
+            if len(existing) != 0:
+                raise ValidationError('Component already exists.')
+        else:
+            if len(existing) > 0 and existing[0].id != self.id:
+                raise ValidationError('Component already exists.')
 
     def save(self, *args, **kwargs):
         self.validate_unique()
