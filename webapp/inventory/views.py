@@ -190,7 +190,7 @@ def update_component_box(request, component_id):
     if request.method == 'POST':
         box = request.POST.get('box', '')
 
-        if box.trim() == '':
+        if box.strip() == '':
             return HttpResponse(status=400)
 
         component = Component.objects.get(id=component_id)
